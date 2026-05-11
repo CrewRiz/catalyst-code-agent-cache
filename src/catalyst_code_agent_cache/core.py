@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
-import catalyst_hdc as hdc
 from catalyst_brain import CatalystTokenKernel, ToolSpec
 
 from catalyst_code_agent_cache.license import COMMERCIAL_CONTACT, assert_research_use
@@ -102,6 +101,30 @@ def _normalise_tags(tags: Iterable[str]) -> tuple[str, ...]:
 def _terms(value: str) -> set[str]:
     cleaned = "".join(ch.lower() if ch.isalnum() else " " for ch in value)
     return {part for part in cleaned.split() if part}
+
+
+def _text_hv(value: str, dim: int) -> list[float]:
+    raw = value.encode("utf-8", errors="replace")
+    out: list[float] = []
+    counter = 0
+    while len(out) < dim:
+        digest = hashlib.blake2b(raw + counter.to_bytes(4, "big"), digest_size=64).digest()
+        for byte in digest:
+            for bit in range(8):
+                out.append(1.0 if byte & (1 << bit) else -1.0)
+                if len(out) == dim:
+                    break
+            if len(out) == dim:
+                break
+        counter += 1
+    return out
+
+
+def _resonance(left: list[float], right: list[float]) -> float:
+    if not left or not right:
+        return 0.0
+    width = min(len(left), len(right))
+    return sum(left[index] * right[index] for index in range(width)) / width
 
 
 def _language_for_path(path: str) -> str:
@@ -298,7 +321,7 @@ class CatalystCodeAgentCache:
         file_language = language or _language_for_path(path)
         clean_tags = _normalise_tags((file_language, *tags))
         digest = _digest(f"{path}\0{stored_content}\0{file_summary}\0{clean_tags}")
-        vector = hdc.hv_hash_string(f"{path} {file_summary} {' '.join(clean_tags)}", self.dim)
+        vector = _text_hv(f"{path} {file_summary} {' '.join(clean_tags)}", self.dim)
         snapshot = FileSnapshot(
             path=path,
             summary=file_summary,
@@ -381,13 +404,13 @@ class CatalystCodeAgentCache:
         if top_k <= 0:
             raise ValueError("top_k must be positive")
         q_terms = _terms(query)
-        q_vector = hdc.hv_hash_string(query, self.dim)
+        q_vector = _text_hv(query, self.dim)
         scored: list[tuple[float, FileSnapshot]] = []
         for snapshot in self._files.values():
             haystack = " ".join((snapshot.path, snapshot.summary, snapshot.language, *snapshot.tags))
             overlap = len(q_terms & _terms(haystack)) / max(1, len(q_terms))
             phrase_bonus = 0.25 if query.lower() in haystack.lower() else 0.0
-            resonance = max(0.0, hdc.resonance(q_vector, snapshot.vector)) * 0.10
+            resonance = max(0.0, _resonance(q_vector, snapshot.vector)) * 0.10
             scored.append((overlap + phrase_bonus + resonance, snapshot))
         scored.sort(key=lambda item: (-item[0], item[1].path))
         return [
