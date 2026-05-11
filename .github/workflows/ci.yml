@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]"
+      - run: pytest -q
+      - name: Smoke
+        run: |
+          catalyst-code-agent-cache-smoke > smoke.json
+          cat smoke.json
+          python -m json.tool smoke.json >/dev/null
+          python - <<'PY'
+          import json
+          data = json.load(open("smoke.json", encoding="utf-8"))
+          assert data["capabilities"]["sdk_dependency"] == "catalyst-brain"
+          assert data["report"]["commercial_contact"] == "hello@strategic-innovations.ai"
+          assert data["report"]["files"] == 18
+          assert data["report"]["context_saved_pct"] > 80.0
+          assert data["repo_map"]["files"][0]["content_ref"].startswith("hkvc://code/file/")
+          assert data["test"]["result_ref"].startswith("hkvc://task/")
+          PY

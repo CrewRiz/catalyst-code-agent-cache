@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "catalyst-code-agent-cache"
+version = "0.2.0"
+description = "Source-available coding-agent context cache powered by catalyst-brain."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Strategic Innovations AI", email = "hello@strategic-innovations.ai" }]
+dependencies = ["catalyst-brain>=1.3.3,<2"]
+keywords = ["coding-agent", "context-engineering", "token-efficiency", "repo-map", "test-logs", "catalyst-brain"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://github.com/CrewRiz/catalyst-code-agent-cache"
+Commercial = "https://strategic-innovations.ai"
+
+[project.scripts]
+catalyst-code-agent-cache-smoke = "catalyst_code_agent_cache.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
