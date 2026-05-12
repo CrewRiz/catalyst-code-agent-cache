@@ -1,15 +1,20 @@
 # Catalyst Code Agent Cache
 
-Source-available coding-agent context cache powered by the closed-source,
-monetized `catalyst-brain` SDK.
+Source-available coding-agent context cache powered by the public
+`catalyst-brain` SDK wheel.
 
 This adapter targets Codex-style and Claude Code-style software engineering
 loops where agents repeatedly resend repo scans, file snapshots, terminal logs,
 test output, patches, and handoff notes. Catalyst keeps those high-volume
 payloads behind compact handles until the agent explicitly asks to expand them.
 
-Commercial, enterprise, hosted, revenue-generating, or customer pilot use
-requires a written agreement:
+The Catalyst Brain free tier is designed for easy evaluation: no registration,
+no signup, and no API key are required for early local usage. Most coding-agent
+experiments, benchmark runs, and prototypes should not hit free-tier limits
+while you are getting started.
+
+When this adapter moves toward production coding agents, hosted tools,
+enterprise deployment, customer pilots, or higher-volume API usage, contact:
 
 ```text
 hello@strategic-innovations.ai
@@ -101,8 +106,13 @@ Use the public benchmark repository for reproducible SDK-level evidence:
 https://github.com/CrewRiz/catalyst-brain-benchmarks
 ```
 
-## License Boundary
+## Free Tier And Production Use
 
-Research/evaluation is allowed. Production coding agents, enterprise
-deployments, hosted tools, customer pilots, or revenue workflows require a
-license. Contact `hello@strategic-innovations.ai`.
+Install `catalyst-brain` from PyPI and evaluate this adapter without signup,
+registration, or an API key. The free tier covers early research, personal
+evaluation, benchmark reproduction, prototypes, and integration testing.
+
+Most users should not hit free-tier limits during early development. If your use
+case becomes production coding agents, hosted tools, enterprise deployment,
+customer pilots, revenue workflows, or needs higher quotas/support, contact
+`hello@strategic-innovations.ai`.
